@@ -1,96 +1,166 @@
 import numpy as np
+import mpmath as mp
 
-LOG_CUTOFF = 60
+# ==============================
+# CONFIGURATION
+# ==============================
+
+BASIS_M = 60
+N_ZEROS = 200
 PRIME_CUTOFF = 5000
+GRID_N = 12000
+LOG_CUTOFF = 8.0
 
-ZEROS = [
-    14.134725,21.022040,25.010858,30.424876,32.935061,
-    37.586178,40.918719,43.327073,48.005150,49.773832,
-    52.970321,56.446248,59.347044,60.831780,65.112544,
-    67.079811,69.546401,72.067158,75.704690,77.144840
-]
+GLE_WEIGHT = 5.50575
+ZERO_WEIGHT = 20.0
+OFFCRIT_EPS = 0.0
 
-# ---- GLE / JN / PS weights (adjustable) ----
-GLE_WEIGHT = 2.1261.0
-JN_WEIGHT  = 1.0
-PS_WEIGHT  = 1.0
+mp.mp.dps = 50
 
-# ---- utilities ----
+# ==============================
+# Hermite Odd Orthonormal Basis
+# ==============================
 
-def primes_up_to(n):
+def hermite_odd_basis(m, x):
+    from numpy.polynomial.hermite import hermval
+    basis = []
+    for k in range(m):
+        coeff = [0] * (2*k + 2)
+        coeff[2*k + 1] = 1.0
+        H = hermval(x, coeff)
+        H = H * np.exp(-0.5 * x * x)
+        norm = np.sqrt(np.trapezoid(H * H, x))
+        if norm == 0:
+            norm = 1.0
+        H = H / norm
+        basis.append(H)
+    return np.array(basis)
+
+# ==============================
+# Prime Sieve
+# ==============================
+
+def simple_primes_upto(n):
     sieve = np.ones(n+1, dtype=bool)
     sieve[:2] = False
-    for i in range(2, int(n**0.5)+1):
+    for i in range(2, int(np.sqrt(n)) + 1):
         if sieve[i]:
             sieve[i*i:n+1:i] = False
     return np.nonzero(sieve)[0]
 
-def odd_basis(m, grid):
-    return np.array([np.sin((k+1)*grid) for k in range(m)])
+# ==============================
+# Zeta Zeros
+# ==============================
 
-# ---- PRIME TERM ----
-def prime_term_matrix(basis, grid):
-    m = basis.shape[0]
-    Q = np.zeros((m,m))
-    primes = primes_up_to(PRIME_CUTOFF)
-    for p in primes:
-        weight = np.log(p)/np.sqrt(p)
-        t = np.log(p)
-        idx = np.argmin(np.abs(grid - t))
-        v = basis[:,idx]
-        Q += weight * np.outer(v,v)
-    return Q
+def critical_zeros(n):
+    return [float(mp.zetazero(k).imag) for k in range(1, n+1)]
 
-# ---- ZERO TERM ----
+# ==============================
+# Kernel Components
+# ==============================
+
 def zero_term_matrix(basis, grid):
     m = basis.shape[0]
-    Q = np.zeros((m,m))
-    ZERO_WEIGHT = 20.0
-    for gamma in ZEROS:
-        idx = np.argmin(np.abs(grid - gamma))
-        v = basis[:,idx]
-        Q += ZERO_WEIGHT * np.outer(v, v)
-    return Q
+    Q = np.zeros((m, m), dtype=float)
+    zeros = critical_zeros(N_ZEROS)
 
-# ---- GLE (Gamma-like even weight) ----
+    # Precompute Fourier transforms of basis
+    # F_k(gamma) = ∫ b_k(t) e^{-i gamma t} dt
+    for gamma in zeros:
+        gamma = gamma + OFFCRIT_EPS
+        weight = ZERO_WEIGHT / (0.25 + gamma**2)
+
+        F = []
+        for b in basis:
+            integrand = b * np.exp(-2j * np.pi * gamma * grid)
+            val = np.trapezoid(integrand, grid)
+            F.append(val)
+
+        F = np.array(F)
+
+        # Weil zero term uses F(gamma) * conjugate
+        Q += weight * np.outer(F.real, F.real)
+
+    return Q
+def prime_term_matrix(basis, grid):
+    m = basis.shape[0]
+    Q = np.zeros((m, m))
+
+    primes = simple_primes_upto(PRIME_CUTOFF)
+
+    for p in primes:
+        logp = np.log(p)
+        for k in range(1, 8):  # prime powers up to m=7
+            val = k * logp
+            if val > LOG_CUTOFF:
+                break
+            weight = logp / (p**(k/2))
+            vals = np.array([np.interp(val, grid, b) for b in basis])
+            Q += weight * np.outer(vals, vals)
+
+    return Q
 def GLE_matrix(basis, grid):
     m = basis.shape[0]
-    Q = np.zeros((m,m))
-    weight = 1.0 / (1.0 + grid**2)   # placeholder decay
+    Q = np.zeros((m, m))
+
+    # Precompute digamma term safely
+    dig = np.array([
+        float(mp.re(mp.digamma(0.25 + 0.5j * t)))
+        for t in grid
+    ])
+
     for i in range(m):
         for j in range(m):
-            Q[i,j] = np.sum(weight * basis[i]*basis[j])
+            integrand = basis[i] * basis[j] * dig
+            Q[i, j] = np.trapezoid(integrand, grid)
+
     return Q
 
-# ---- JN (symmetry projector-like correction) ----
-def JN_matrix(basis):
-    m = basis.shape[0]
-    return np.eye(m)  # identity correction placeholder
+# ==============================
+# Main Run
+# ==============================
 
-# ---- PS (prime scaling correction) ----
-def PS_matrix(basis, grid):
-    m = basis.shape[0]
-    Q = np.zeros((m,m))
-    for i in range(m):
-        for j in range(m):
-            Q[i,j] = 0.01 * np.dot(basis[i], basis[j])
-    return Q
+def run(m_basis=BASIS_M, n_zeros=N_ZEROS):
+    m_basis = min(m_basis, 90)
+    global BASIS_M, N_ZEROS
+    BASIS_M = m_basis
+    N_ZEROS = n_zeros
 
-def run_test(m):
-    grid = np.linspace(-LOG_CUTOFF,LOG_CUTOFF,10000)
-    basis = odd_basis(m,grid)
+    grid = np.linspace(-LOG_CUTOFF, LOG_CUTOFF, GRID_N)
+    basis = hermite_odd_basis(m_basis, grid)
 
-    Q = (
-        zero_term_matrix(basis,grid)
-        - prime_term_matrix(basis,grid)
-        + GLE_WEIGHT * GLE_matrix(basis,grid)
-        + JN_WEIGHT  * JN_matrix(basis)
-        - PS_WEIGHT  * PS_matrix(basis,grid)
-    )
+    Q_zero = zero_term_matrix(basis, grid)
+    Q_prime = prime_term_matrix(basis, grid)
+    Q_gle = GLE_matrix(basis, grid)
 
-    eigvals = np.linalg.eigvalsh(Q)
-    print(f"m={m}, min eigenvalue={eigvals[0]}")
+    Q = Q_zero - Q_prime + GLE_WEIGHT * Q_gle
+    Q = 0.5*(Q + Q.T)
+
+    eig = np.linalg.eigvalsh(Q)
+    minEig = eig[0]
+    maxEig = eig[-1]
+    cond = float(abs(maxEig) / max(abs(minEig), 1e-18))
+
+    print("HAVE_MPMATH=True")
+    print(f"m_basis={m_basis}  n_zeros={n_zeros}  PRIME_CUTOFF={PRIME_CUTOFF}  GRID_N={GRID_N}")
+    print(f"GLE_WEIGHT={GLE_WEIGHT}  ZERO_WEIGHT={ZERO_WEIGHT}  OFFCRIT_EPS={OFFCRIT_EPS}")
+    print(f"minEig={minEig:.6f}  maxEig={maxEig:.6f}  cond~={cond:.3e}")
+
+# ==============================
+# Off-Critical Sweep
+# ==============================
+
+def sweep_offcrit(eps_list, m_basis=60, n_zeros=200):
+    global OFFCRIT_EPS
+    print("\nOFF-CRITICAL SWEEP:")
+    for eps in eps_list:
+        OFFCRIT_EPS = eps
+        run(m_basis, n_zeros)
+
+# ==============================
+# Entry
+# ==============================
 
 if __name__ == "__main__":
-    for m in [5,10,15,20]:
-        run_test(m)
+    run()
+    sweep_offcrit([0.0, 0.02, 0.05, 0.1, 0.2])
