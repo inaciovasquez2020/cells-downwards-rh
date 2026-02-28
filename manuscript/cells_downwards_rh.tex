@@ -55,3 +55,66 @@ To complete the proof it suffices to prove a coercive estimate of the form
 for some $\delta > 0$ unless $f$ is symmetric under $s \mapsto 1-s$.
 
 \end{document}
+\section{Next Step Placeholder}
+egin{theorem}Placeholder.nd{theorem}
+
+\section{Critical Symmetry Decomposition}
+
+Define the involution $J$ by
+\[
+(Jf)(s) := f(1-s).
+\]
+
+Then $J^2 = I$ and $\mathcal{H}$ decomposes as
+\[
+\mathcal{H} = \mathcal{H}_+ \oplus \mathcal{H}_-
+\]
+where
+\[
+\mathcal{H}_\pm = \{ f \in \mathcal{H} : Jf = \pm f \}.
+\]
+
+The Riemann Hypothesis is equivalent to the absence of
+non-decaying modes in $\mathcal{H}_-$.
+
+\section{Quadratic Form Model}
+
+Define a quadratic form
+\[
+Q(f) := \langle L f, f \rangle
+\]
+where $L$ is a self-adjoint operator on $\mathcal{H}$.
+
+We assume:
+
+1. $L$ commutes with the symmetry $J$.
+2. $L$ is positive on $\mathcal{H}_+$.
+3. $L$ has no kernel except possibly in $\mathcal{H}_+$.
+
+The Riemann Hypothesis is equivalent to:
+\[
+Q(f) > 0 \quad \text{for all } f \in \mathcal{H}_- \setminus \{0\}.
+\]
+
+\end{document}
+
+\section{Weil Explicit Quadratic Form}
+
+Let $\phi$ be a test function with Mellin transform $\widehat{\phi}$.
+
+Define the quadratic form
+\[
+Q(\phi) :=
+\sum_\rho \widehat{\phi}(\rho)\widehat{\phi}(1-\rho)
+- \int_{0}^{\infty} \Phi(x)\, dx,
+\]
+where the sum runs over nontrivial zeros $\rho$ of $\zeta(s)$
+and $\Phi$ is the prime-weight contribution from the explicit formula.
+
+The Riemann Hypothesis is equivalent to:
+
+\[
+Q(\phi) \ge 0 \quad \text{for all admissible } \phi.
+\]
+
+\end{document}
