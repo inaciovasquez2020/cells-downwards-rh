@@ -1,0 +1,23 @@
+{
+  "checks": {
+    "expected_lower_bound_gap": 0.767756139227012,
+    "max_rayleigh_shifted_over_unit_vectors_orth_v0": 5.106756506203869,
+    "min_ratio_over_unit_vectors_orth_v0": 4.091767032147654,
+    "min_rayleigh_shifted_over_unit_vectors_orth_v0": 4.091767032147654
+  },
+  "method": {
+    "M": 90,
+    "basis": "hermite_odd",
+    "domain_L": 15.0,
+    "grid_N": 4000,
+    "seed": 0,
+    "trials": 200
+  },
+  "runtime_sec": 2.005845069885254,
+  "schema": "cells-downwards-rh.shifted-positivity.v1",
+  "spectrum": {
+    "gap": 0.767756139227012,
+    "lambda0": -3.9158840407946753,
+    "lambda1": -3.1481279015676633
+  }
+}
