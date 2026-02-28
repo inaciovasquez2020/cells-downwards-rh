@@ -118,3 +118,41 @@ Q(\phi) \ge 0 \quad \text{for all admissible } \phi.
 \]
 
 \end{document}
+
+\section{Explicit Formula Contributions}
+
+\subsection{Prime (Mangoldt) Term}
+
+Let $\Lambda(n)$ denote the von Mangoldt function.
+For admissible $\phi(x)=g(\log x)$ define
+\[
+\Phi_{\mathrm{pr}}(g)
+:= 2\sum_{n\ge 2} \frac{\Lambda(n)}{\sqrt{n}}\, g(\log n).
+\]
+
+\subsection{Gamma Term}
+
+Define the archimedean contribution
+\[
+\Phi_{\Gamma}(g)
+:= \int_{-\infty}^{\infty} g(t)\, W_{\Gamma}(t)\, dt,
+\]
+where $W_{\Gamma}$ is the even weight induced by the
+logarithmic derivative of the $\Gamma$-factor of $\xi$.
+
+\subsection{Completed Quadratic Form}
+
+\[
+Q(g)
+:= \sum_{\rho} \widehat{\phi}(\rho)\widehat{\phi}(1-\rho)
+- \Phi_{\mathrm{pr}}(g)
+- \Phi_{\Gamma}(g).
+\]
+
+We seek:
+
+\[
+Q(g) \ge \delta \|g_-\|^2
+\quad (\exists \delta>0).
+\]
+
