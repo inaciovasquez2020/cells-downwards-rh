@@ -1,0 +1,57 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,amsthm}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
+
+\begin{document}
+
+\title{Cells Downwards and Spectral Rigidity toward RH}
+\author{}
+\date{}
+\maketitle
+
+\section{Spectral Setup}
+
+Let $\xi(s)$ denote the completed Riemann xi-function.
+It satisfies the functional equation
+\[
+\xi(s) = \xi(1-s).
+\]
+
+Define the Hilbert space
+\[
+\mathcal{H} = L^2\left(\mathbb{R}, w(t)\,dt\right)
+\]
+for an appropriate weight $w$ induced by the Mellin transform of $\xi$.
+
+\section{Cell Decomposition}
+
+We decompose $\mathcal{H}$ into spectral cells
+\[
+\mathcal{H} = \bigoplus_{k} \mathcal{C}_k
+\]
+indexed by imaginary height bands.
+
+\section{Downward Transfer Operator}
+
+Define a transfer operator $T$ mapping cells downward in height.
+
+The key obstruction statement is:
+
+\begin{lemma}[Downward Rigidity Target]
+If a zero of $\xi(s)$ satisfies $\Re(s) \neq \tfrac{1}{2}$,
+then there exists a non-decaying mode in some cell $\mathcal{C}_k$
+that is invariant under $T$.
+\end{lemma}
+
+\section{Missing Inequality}
+
+To complete the proof it suffices to prove a coercive estimate of the form
+\[
+\|T f\|^2 \leq \|f\|^2 - \delta \|f_{\perp}\|^2
+\]
+for some $\delta > 0$ unless $f$ is symmetric under $s \mapsto 1-s$.
+
+\end{document}
