@@ -1,0 +1,15 @@
+entry_theorem: RH_STRUCTURAL_BOUNDARY_2026
+
+claims:
+  - id: RH_STRUCTURAL_BOUNDARY_2026
+    status: empirical
+    depends_on:
+      - MIN_EIGENVALUE_MONOTONICITY
+
+  - id: MIN_EIGENVALUE_MONOTONICITY
+    status: empirical
+    depends_on: []
+
+  - id: SCALING_ENFORCEMENT_CONDITION
+    status: conditional
+    depends_on: []
