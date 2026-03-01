@@ -1,4 +1,10 @@
 import numpy as np
+
+if hasattr(np, "trapezoid"):
+    integrate = np.trapezoid
+else:
+    integrate = np.trapz
+
 import mpmath as mp
 
 # ==============================
@@ -29,7 +35,7 @@ def hermite_odd_basis(m, x):
         coeff[2*k + 1] = 1.0
         H = hermval(x, coeff)
         H = H * np.exp(-0.5 * x * x)
-        norm = np.sqrt(np.trapezoid(H * H, x))
+        norm = np.sqrt(integrate(H * H, x))
         if norm == 0:
             norm = 1.0
         H = H / norm
@@ -61,26 +67,21 @@ def critical_zeros(n):
 
 def zero_term_matrix(basis, grid):
     m = basis.shape[0]
-    Q = np.zeros((m, m), dtype=float)
+    Q = np.zeros((m, m))
+
     zeros = critical_zeros(N_ZEROS)
 
-    # Precompute Fourier transforms of basis
-    # F_k(gamma) = ∫ b_k(t) e^{-i gamma t} dt
     for gamma in zeros:
-        gamma = gamma + OFFCRIT_EPS
-        weight = ZERO_WEIGHT / (0.25 + gamma**2)
+        vals = []
+        for j in range(m):
+            n = j
+            phase = (1j)**(-n)
+            psi_gamma = np.interp(gamma, grid, basis[j])
+            vals.append((phase * psi_gamma).real)
+        vals = np.array(vals)
+        Q += np.outer(vals, vals)
 
-        F = []
-        for b in basis:
-            integrand = b * np.exp(-2j * np.pi * gamma * grid)
-            val = np.trapezoid(integrand, grid)
-            F.append(val)
-
-        F = np.array(F)
-
-        # Weil zero term uses F(gamma) * conjugate
-        Q += weight * np.outer(F.real, F.real)
-
+    Q /= max(len(zeros), 1)
     return Q
 def prime_term_matrix(basis, grid):
     m = basis.shape[0]
@@ -112,7 +113,7 @@ def GLE_matrix(basis, grid):
     for i in range(m):
         for j in range(m):
             integrand = basis[i] * basis[j] * dig
-            Q[i, j] = np.trapezoid(integrand, grid)
+            Q[i, j] = integrate(integrand, grid)
 
     return Q
 
