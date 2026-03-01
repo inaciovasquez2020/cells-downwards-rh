@@ -1,0 +1,21 @@
+{
+  "env": {
+    "numpy": "2.4.2",
+    "platform": "macOS-26.3-arm64-arm-64bit",
+    "python": "3.11.14 (main, Oct  9 2025, 16:16:55) [Clang 17.0.0 (clang-1700.6.3.2)]"
+  },
+  "method": {
+    "M": 90,
+    "basis": "hermite_odd",
+    "domain_L": 15.0,
+    "eigensolver": "numpy.linalg.eigvalsh",
+    "grid_N": 4000
+  },
+  "results": {
+    "gap": 0.7677561392270285,
+    "lambda0": -3.915884040794682,
+    "lambda1": -3.1481279015676535
+  },
+  "runtime_sec": 2.0083248615264893,
+  "schema": "cells-downwards-rh.spectral-floor.v1"
+}
